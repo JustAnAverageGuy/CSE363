@@ -31,3 +31,4 @@ play in column d contains the word in row t, and is 0 otherwise.
     - Even during query, you don't need to fetch the whole mapping, can only fetch only relevant terms and corresponding list
     - This approach is called the *inverted index*
     - ![Example of an inverted index](./images/figure-1-3.png) 
+    - ![building and index](./images/fig-1-4.png) 
