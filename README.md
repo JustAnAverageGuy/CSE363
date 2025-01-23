@@ -9,4 +9,9 @@ Other Resources: <https://nlp.stanford.edu/IR-book/information-retrieval.html>
 --
 
 - Information Retrieval: Information retrieval (IR) is finding material (usually documents) of an unstructured nature (usually text) that satisfies an *information need* from within large collections (usually stored on computers).
-- [Boolean Model](./boolean-model.md)
+
+- Retrieval Strategies
+    - Unranked
+        - [Boolean Model](./boolean-model.md)
+    - Ranked
+        - [Vector Space Model](./vector-space-model)
