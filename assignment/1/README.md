@@ -16,3 +16,7 @@
 
 > [!NOTE]
 > For late submission, 5 marks will be deducted from the mark you scored for the assignment. So please avoid the deadline and submit as early as possible.
+
+# Solution
+
+Solution is generated from [solve.md](./solve.md), the pdf can be found in [*`solution.pdf`*](./solution.pdf)
