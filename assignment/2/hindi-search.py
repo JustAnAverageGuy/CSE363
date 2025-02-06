@@ -1,26 +1,23 @@
 #!/usr/bin/env python3
 # vim: fdm=marker nowrap
 
-# import regex
+import regex
 import json
-import re as regex
 from collections import defaultdict
 from pathlib import Path
 import sys
 
-from nltk.stem.snowball import EnglishStemmer as stemmer
 from tqdm import tqdm
 
 
-BASE_PATH      = Path(__file__).parent
-DIRECTORY_PATH = "../IR_Assignment_Dataset/english/"
-# TERM_PATTERN = regex.compile(r"[a-zA-Z\-]+", regex.UNICODE | regex.I)
-TERM_PATTERN   = regex.compile(r"[a-zA-Z\-]+")
+BASE_PATH = Path(__file__).parent
+DIRECTORY_PATH = "../IR_Assignment_Dataset/hindi/"
+TERM_PATTERN = regex.compile(r"\w+", regex.UNICODE | regex.I)
 
 root             = BASE_PATH /  Path(DIRECTORY_PATH)
-files_list_path  = BASE_PATH /  Path("./file-order-en.json")
-postings_path    = BASE_PATH /  Path("./postings-en.json")
-word_counts_path = BASE_PATH /  Path("./term-counts-en.json")
+files_list_path  = BASE_PATH /  Path("./file-order-hi.json")
+postings_path    = BASE_PATH /  Path("./postings-hi.json")
+word_counts_path = BASE_PATH /  Path("./term-counts-hi.json")
 
 COLORS = {
     "BLACK"   : "\x1b[30m",
@@ -54,7 +51,6 @@ postings = defaultdict(list)
 files = []
 wcs = defaultdict(int)
 
-sno = stemmer(ignore_stopwords=True)
 
 # [[ load data ]] {{{
 def load_data():
@@ -63,7 +59,7 @@ def load_data():
     global wcs
     if not (files_list_path.is_file() and postings_path.is_file() and word_counts_path.is_file()):
         print("Indexing...", flush=True)
-        print(f"Takes ~{COLORS['BLUE']}6.5{COLORS['RESET']} mins on my machine", flush=True)
+        print(f"Takes ~{COLORS['BLUE']}2.5{COLORS['RESET']} mins on my machine", flush=True)
         files = [i for i in root.glob("**/*") if i.is_file()]
         # file_ids = { j:i for i,j in enumerate(files) }
         wcs = defaultdict(int)
@@ -72,8 +68,7 @@ def load_data():
             if words is None: continue
             # for word in tqdm(words, leave=False):
             for word in words:
-                stemmd = sno.stem(word)
-                if stemmd in sno.stopwords: continue
+                stemmd = word
                 if postings[stemmd] and postings[stemmd][-1] == idx: 
                     wcs[stemmd] += 1
                     continue
@@ -225,7 +220,7 @@ def parse_and_eval_query(terms, calc=False):# {{{
             if not calc:
                 stk.append(f'({t})')
             else:
-                stk.append(sno.stem(t))
+                stk.append(t)
     if len(stk) != 1:
         invalid(stk)
         return False
@@ -245,8 +240,7 @@ f"""
 {COLORS['YELLOW']}>{COLORS['RESET']} available operators - AND: use {COLORS['GREEN']}"&"{COLORS['RESET']}
                       - OR : use {COLORS['GREEN']}"|"{COLORS['RESET']}
                       - NOT: use {COLORS['GREEN']}"~"{COLORS['RESET']}
-{COLORS['YELLOW']}>{COLORS['RESET']} e.g.: {COLORS['MAGENTA']}"short" "watch" "~" "&"{COLORS['RESET']}
-{COLORS['YELLOW']}>{COLORS['RESET']} e.g.: {COLORS['MAGENTA']}"hello" "world" "web" "&" "&"{COLORS['RESET']}
+{COLORS['YELLOW']}>{COLORS['RESET']} e.g.: {COLORS['MAGENTA']}"काम" "अधिक" "&"{COLORS['RESET']}
 {COLORS['YELLOW']}>{COLORS['MAGENTA']} """).strip()
     if inp == "EXIT": 
         print(f'\n{COLORS["GREEN"]}bye {COLORS["CYAN"]}:){COLORS["RESET"]}')

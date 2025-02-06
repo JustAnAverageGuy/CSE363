@@ -12,3 +12,4 @@ Abhijeet Panihar 5-Year IDD Computer Science and Engineering                • 
 Submit a zip file containing the codes in the format `<roll_number>_Assignment_2.zip`
 
 Note: For late submission, 50% marks will be deducted from the mark you scored for the particular assignment. So please avoid the deadline and submit as early as possible.
+
