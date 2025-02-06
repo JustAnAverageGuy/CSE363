@@ -9,7 +9,7 @@
     - FBS etc.
 - Frequency Distribution of words in a document collection
     - Zipf's Law
-        - Rank * frequency 󰾞 constant
+        - Rank * frequency $\approx$ constant
         - For English, the constant is approximately equal to n/10, where n is number of unique words in the document collection
 - Vocabulary growth
     - *Heaps' Law*
