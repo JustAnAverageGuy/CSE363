@@ -13,15 +13,15 @@ from tqdm import tqdm
 
 wc = Counter()
 
-BASE_PATH = Path(__file__).parent
+BASE_PATH      = Path(__file__).parent
 DIRECTORY_PATH = "../IR_Assignment_Dataset/english/"
 # TERM_PATTERN = regex.compile(r"[a-zA-Z\-]+", regex.UNICODE | regex.I)
-TERM_PATTERN = regex.compile(r"[a-zA-Z\-]+")
+TERM_PATTERN   = regex.compile(r"[a-zA-Z\-]+")
 
 root             = BASE_PATH /  Path(DIRECTORY_PATH)
-files_list_path  = BASE_PATH /  Path("./file-order.json")
-postings_path    = BASE_PATH /  Path("./postings.json")
-word_counts_path = BASE_PATH /  Path("./term-counts.json")
+files_list_path  = BASE_PATH /  Path("./file-order-en.json")
+postings_path    = BASE_PATH /  Path("./postings-en.json")
+word_counts_path = BASE_PATH /  Path("./term-counts-en.json")
 
 COLORS = {
     "BLACK"   : "\x1b[30m",
@@ -64,6 +64,7 @@ def load_data():
     global wcs
     if not (files_list_path.is_file() and postings_path.is_file() and word_counts_path.is_file()):
         print("Indexing...", flush=True)
+        print(f"Takes ~{COLORS['BLUE']}6.5{COLORS['RESET']} mins on my machine", flush=True)
         files = [i for i in root.glob("**/*") if i.is_file()]
         # file_ids = { j:i for i,j in enumerate(files) }
         wcs = defaultdict(int)
@@ -83,7 +84,7 @@ def load_data():
         with open(postings_path,    "w") as f: json.dump(postings,                f)
         with open(word_counts_path, "w") as f: json.dump(wcs,                     f)
     else:
-        print(f"\n\n\n{COLORS['MAGENTA']}#######################\n#### {COLORS['YELLOW']}Loading index{COLORS['MAGENTA']} ####\n#######################{COLORS['RESET']}", flush =  True)
+        print(f"\x1b[2J\n\n{COLORS['MAGENTA']}#######################\n#### {COLORS['YELLOW']}Loading index{COLORS['MAGENTA']} ####\n#######################{COLORS['RESET']}", flush =  True)
         with open(files_list_path)   as f: files    = json.load(f)
         with open(postings_path)     as f: postings = json.load(f)
         with open(word_counts_path)  as f: wcs      = json.load(f)
@@ -192,13 +193,17 @@ def invert(term:str|list[int]): # {{{
         pr += 1
     return res # }}}
 
+def invalid(stk):
+    print(f"{COLORS['RED']}Invalid{COLORS['RESET']}", file=sys.stderr, flush=True)
+    print(f"stack: {stk}", file=sys.stderr, flush=True)
+    return
+
 def parse_and_eval_query(terms, calc=False):# {{{
     stk = []
     for t in terms:
         if t == '&' or t == '|':
             if len(stk) < 2: 
-                print("Invalid", file=sys.stderr, flush=True)
-                print(f"stack: {stk}", file=sys.stderr, flush=True)
+                invalid(stk)
                 return False
             r,l = stk.pop(), stk.pop()  # noqa: E741
             if not calc:
@@ -210,8 +215,7 @@ def parse_and_eval_query(terms, calc=False):# {{{
                     stk.append(query(l,r,1))
         elif t == '~':
             if len(stk) < 1: 
-                print("Invalid", file=sys.stderr, flush=True)
-                print(f"stack: {stk}", file=sys.stderr, flush=True)
+                invalid(stk)
                 return False
             last = stk.pop()
             if not calc:
@@ -224,8 +228,7 @@ def parse_and_eval_query(terms, calc=False):# {{{
             else:
                 stk.append(sno.stem(t))
     if len(stk) != 1:
-        print("Invalid", file=sys.stderr, flush=True)
-        print(f"stack: {stk}", file=sys.stderr, flush=True)
+        invalid(stk)
         return False
 
     if not calc:
@@ -247,7 +250,7 @@ f"""
 {COLORS['YELLOW']}>{COLORS['RESET']} e.g.: {COLORS['MAGENTA']}"hello" "world" "web" "&" "&"{COLORS['RESET']}
 {COLORS['YELLOW']}>{COLORS['MAGENTA']} """).strip()
     if inp == "EXIT": 
-        print(f'{COLORS["GREEN"]}bye {COLORS["CYAN"]}:){COLORS["RESET"]}')
+        print(f'\n{COLORS["GREEN"]}bye {COLORS["CYAN"]}:){COLORS["RESET"]}')
         sys.exit()
     # print(f"got `{inp}` {inp == 'EXIT'}")
     print(COLORS["RESET"])
@@ -273,7 +276,7 @@ while True:
     i = 0
     resp = "w"
     while i < len(result):
-        resp = input(f"{COLORS['YELLOW']}-->{COLORS['RESET']} print some results? {COLORS['GREEN']}y{COLORS['RESET']}/{COLORS['GREEN']}n{COLORS['RESET']}/({COLORS['GREEN']}w{COLORS['RESET']} to save to file results.txt): ")
+        resp = input(f"{COLORS['YELLOW']}|->{COLORS['RESET']} print some results? {COLORS['GREEN']}y{COLORS['RESET']}/{COLORS['GREEN']}n{COLORS['RESET']}/({COLORS['GREEN']}w{COLORS['RESET']} to save to file results.txt): ")
         if resp[0].lower() == "y": 
             print(COLORS["CYAN"])
             print(*reldocs_name(result[i:i+10]), sep="\n")
@@ -282,6 +285,6 @@ while True:
         elif resp[0].lower() == "w":
             with open("results.txt","w") as f:
                 print(*reldocs_name(result), sep="\n",file=f)
-            print(f"written matches to {COLORS['YELLOW']}results.txt{COLORS['RESET']}:)")
+            print(f"{COLORS['GREEN']}|->{COLORS['RESET']} written matches to {COLORS['YELLOW']}results.txt{COLORS['RESET']} :)")
         else:
             break# }}}
