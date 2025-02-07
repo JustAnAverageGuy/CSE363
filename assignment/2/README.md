@@ -13,3 +13,6 @@ Submit a zip file containing the codes in the format `<roll_number>_Assignment_2
 
 Note: For late submission, 50% marks will be deducted from the mark you scored for the particular assignment. So please avoid the deadline and submit as early as possible.
 
+## Solution
+
+Run [english-search.py](./english-search.py) for English search and [hindi-search.py](./hindi-search.py) for Hindi search.
