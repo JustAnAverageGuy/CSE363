@@ -15,3 +15,4 @@ Other Resources: <https://nlp.stanford.edu/IR-book/information-retrieval.html>
         - [Boolean Model](./boolean-model.md)
     - Ranked
         - [Vector Space Model](./vector-space-model)
+        - [Probabilistic Information Retrieval](./probabilistic-information-retrieval.md)
