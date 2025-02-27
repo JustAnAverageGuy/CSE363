@@ -4,6 +4,18 @@
 import argparse
 from collections import defaultdict
 
+COLORS = {
+    "BLACK": "\x1b[30m",
+    "RED": "\x1b[31m",
+    "GREEN": "\x1b[32m",
+    "YELLOW": "\x1b[33m",
+    "BLUE": "\x1b[34m",
+    "MAGENTA": "\x1b[35m",
+    "CYAN": "\x1b[36m",
+    "WHITE": "\x1b[37m",
+    "RESET": "\x1b[0m",
+}
+
 # [ parsing files ] {{{
 
 
@@ -21,7 +33,9 @@ def parse_actual_relevancy(actual: str) -> dict[str, dict[str, bool]]:  # {{{
     # }}}
 
 
-def parse_predicted_relevancy( results: str,) -> dict[str, list[tuple[int, str, float]]]:  # {{{
+def parse_predicted_relevancy(
+    results: str,
+) -> dict[str, list[tuple[int, str, float]]]:  # {{{
     """
     Parses the predicted relevancy results from a string input.
 
@@ -55,26 +69,67 @@ def parse_predicted_relevancy( results: str,) -> dict[str, list[tuple[int, str, 
 
 # }}}
 
+# [ computations ] {{{
 
+# [AP   natural    ] {{{
+def compute_AP_nat( ranking: list[tuple[int, str, float]], isrelevant: dict[str, bool]) -> float:
+    # assume that ranking is sorted, since we already sort it during creation
+    precisions:list[float] = []
+    total_retrieved = 0
+    relevant_retrieved = 0
+    for _, docid, _ in ranking:  # rank, rsv are not required
+        total_retrieved += 1
+        relevant_retrieved += isrelevant[docid]
+        precisions.append(relevant_retrieved / total_retrieved)
+    return sum(precisions) / len(precisions)
+# }}}
 
-from IPython import embed # DEBUG
+# [AP interpolated ] {{{
+def compute_AP_int(
+    ranking: list[tuple[int, str, float]], isrelevant: dict[str, bool]
+) -> float:
+    # assume that ranking is sorted, since we already sort it during creation
+    recalls:list[float] = []
+    precisions:list[float] = []
+    total_retrieved = 0
+    relevant_retrieved = 0
+    total_relevant = sum(isrelevant.values())
+    for _, docid, _ in ranking:  # rank, rsv are not required, but anyways
+        total_retrieved += 1
+        relevant_retrieved += isrelevant[docid]
+        precisions.append(relevant_retrieved / total_retrieved)
+        recalls.append((relevant_retrieved / total_relevant) if total_relevant else 0.0)
 
-def compute_AP_nat(ranking:list[tuple[int, str, float]], isrelevant: dict[str, bool]):
-    ...
-def compute_AP_int(ranking:list[tuple[int, str, float]], isrelevant: dict[str, bool]):...
+    elevenpoint = {
+        i/10: 0.0 for i in range(0, 11)
+    }
+    for r, p in zip(recalls[::-1], precisions[::-1]):
+        for e in elevenpoint:
+            if r >= e: 
+                elevenpoint[e] = max(elevenpoint[e], p)
+
+    return sum(elevenpoint.values()) / len(elevenpoint)
+# }}}
+
+# }}}
 
 def main():
-    predicted = args.queryres.read();args.queryres.close()
-    actual    = args.rels.read();args.rels.close()
-    qnum      = args.qnum
+    predicted = args.queryres.read()
+    args.queryres.close()
+    actual = args.rels.read()
+    args.rels.close()
+    qnum = args.qnum
 
     predicted = parse_predicted_relevancy(predicted)
-    actual    = parse_actual_relevancy(actual)
+    actual = parse_actual_relevancy(actual)
 
     ap_nat = compute_AP_nat(predicted[qnum], actual[qnum])
     ap_int = compute_AP_int(predicted[qnum], actual[qnum])
 
-    embed() # DEBUG
+    print(
+        f"{COLORS['BLUE']}AP_{COLORS['CYAN']}nat{COLORS['YELLOW']} = {COLORS['GREEN']}{ap_nat}\n"
+        f"{COLORS['BLUE']}AP_{COLORS['CYAN']}int{COLORS['YELLOW']} = {COLORS['GREEN']}{ap_int}\n{COLORS['RESET']}"
+    )
 
 
 if __name__ == "__main__":  # {{{
