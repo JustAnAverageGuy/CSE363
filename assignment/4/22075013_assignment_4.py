@@ -78,7 +78,8 @@ def compute_AP_nat( ranking: list[tuple[int, str, float]], isrelevant: dict[str,
     total_retrieved = 0
     relevant_retrieved = 0
     total_relevant = sum(isrelevant.values())
-    for _, docid, _ in ranking:  # rank, rsv are not required
+    for rank, docid, _ in ranking:  # rank, rsv are not required
+        assert rank == total_retrieved
         total_retrieved += 1
         relevant_retrieved += isrelevant[docid]
         if isrelevant[docid]:
@@ -96,7 +97,8 @@ def compute_AP_int(
     total_retrieved = 0
     relevant_retrieved = 0
     total_relevant = sum(isrelevant.values())
-    for _, docid, _ in ranking:  # rank, rsv are not required, but anyways
+    for rank, docid, _ in ranking:  # rank, rsv are not required, but anyways
+        assert rank == total_retrieved
         total_retrieved += 1
         relevant_retrieved += isrelevant[docid]
         precisions.append(relevant_retrieved / total_retrieved)
