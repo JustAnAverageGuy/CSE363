@@ -1,3 +1,4 @@
+![GLWTPL](https://img.shields.io/badge/GLWT-Public_License-red.svg)
 # CSE 363: Information Retrieval
 ## Prof. Sukomal Pal
 
