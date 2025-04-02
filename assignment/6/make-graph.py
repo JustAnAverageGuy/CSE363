@@ -9,19 +9,7 @@ CACHE_FILE_PATH = Path("records.json")
 
 session = requests.Session()
 
-COLORS = {
-    "BLACK": "\x1b[30m",
-    "RED": "\x1b[31m",
-    "GREEN": "\x1b[32m",
-    "YELLOW": "\x1b[33m",
-    "BLUE": "\x1b[34m",
-    "MAGENTA": "\x1b[35m",
-    "CYAN": "\x1b[36m",
-    "WHITE": "\x1b[37m",
-    "RESET": "\x1b[0m",
-}
-
-seed = "https://en.wikipedia.org/wiki/Main_Page"
+seed = "https://deadcells.wiki.gg/"
 
 
 graph = defaultdict(set)
@@ -44,7 +32,7 @@ def main():
     nodes = set()
     for node in graph:
         nodes.add(node)
-        nodes.update(graph[node])
+        # nodes.update(graph[node])
 
     nodelist = list(nodes)
     revnodes = {
@@ -56,12 +44,14 @@ def main():
 
     with open(GRAPH_FILE, "w") as f:
         f.write("digraph {\n\n")
+        f.write(f'    node [shape=box,style=filled];\n')
         for idx, label in enumerate(nodelist):
-            f.write(f'    {idx} [label="{label.replace(DQUOTE, ESCAPED_DQUOTE)}"];\n')
+            f.write(f'    {idx} [label="{label.replace(DQUOTE, ESCAPED_DQUOTE)}"{"" if label != seed else ",color=lightyellow,root=true"}];\n')
         f.write("\n")
         for node in graph:
             for child in graph[node]:
-                f.write(f'    {revnodes[node]} -> {revnodes[child]} ;\n')
+                if child in revnodes:
+                    f.write(f'    {revnodes[node]} -> {revnodes[child]} ;\n')
         f.write("\n}")
 
 

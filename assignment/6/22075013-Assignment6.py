@@ -1,30 +1,24 @@
 #!/usr/bin/env python3
 
-from collections import defaultdict, deque
 import json
+from collections import defaultdict, deque
 from pathlib import Path
+from random import shuffle
 from time import sleep
-from bs4 import BeautifulSoup
+from urllib.parse import urljoin, urlparse, urlunparse
+
 import requests
-from urllib.parse import urljoin
+from bs4 import BeautifulSoup
 
 CACHE_FILE_PATH = Path("records.json")
+IGNORE_CACHE = True
+GRAPH_FILE = Path("graph.gv")
+
 
 session = requests.Session()
 
-COLORS = {
-    "BLACK": "\x1b[30m",
-    "RED": "\x1b[31m",
-    "GREEN": "\x1b[32m",
-    "YELLOW": "\x1b[33m",
-    "BLUE": "\x1b[34m",
-    "MAGENTA": "\x1b[35m",
-    "CYAN": "\x1b[36m",
-    "WHITE": "\x1b[37m",
-    "RESET": "\x1b[0m",
-}
 
-seed = "https://en.wikipedia.org/wiki/Main_Page"
+seed = "https://deadcells.wiki.gg/"
 
 graph = defaultdict(set)
 qu = deque([seed])
@@ -62,14 +56,15 @@ def load_data(file_path=CACHE_FILE_PATH):
 def extract_urls(html: str, base_url: str) -> list[str]:
     soup = BeautifulSoup(html, features="html.parser")
     return [
-        urljoin(base_url, anchor["href"])  # type: ignore
+        urljoin(base_url, urlunparse(urlparse(anchor["href"])._replace(query="")))  # type: ignore
         for anchor in soup.find_all(
             lambda tag: tag.name == "a" and tag.has_attr("href")
         )
     ]
 
+
 def main():
-    if CACHE_FILE_PATH.exists() and  CACHE_FILE_PATH.is_file():
+    if not IGNORE_CACHE and CACHE_FILE_PATH.exists() and CACHE_FILE_PATH.is_file():
         load_data()
         return
     while qu and len(graph) < 100:
@@ -80,16 +75,49 @@ def main():
             sleep(1)
             continue
         urls = extract_urls(res.text, url)
-        for child in urls:
+        shuffle(urls)
+        for child in urls[:10]:
             if child in seen:
                 continue
             seen.add(child)
             graph[url].add(child)
-            if child not in graph:
-                graph[child] = {}
             qu.appendleft(child)
 
     dump_data()
 
+
+def export_graph():
+    nodes = set()
+    for node in graph:
+        nodes.add(node)
+        # nodes.update(graph[node])
+
+    nodelist = list(nodes)
+    revnodes = {j: i for i, j in enumerate(nodelist)}
+
+    DQUOTE = '"'
+    ESCAPED_DQUOTE = r"\""
+
+    with open(GRAPH_FILE, "w") as f:
+        f.write("digraph {\n\n")
+        f.write(f"    node [shape=box,style=filled];\n")
+        for idx, label in enumerate(nodelist):
+            f.write(
+                f'    {idx} [label="{label.replace(DQUOTE, ESCAPED_DQUOTE)}"{"" if label != seed else ",color=lightyellow,root=true"}];\n'
+            )
+        f.write("\n")
+        for node in graph:
+            for child in graph[node]:
+                if child in revnodes:
+                    f.write(f"    {revnodes[node]} -> {revnodes[child]} ;\n")
+        f.write("\n}")
+
+
 if __name__ == "__main__":
     main()
+    export_graph()
+    # can render the graph using a variety of tools
+    # e.g.
+    # twopi -Tsvg graph.gv > graph.svg
+    # firefox ./graph.svg
+    # I manually cleaned it up using gephi
